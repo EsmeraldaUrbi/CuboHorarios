@@ -138,6 +138,11 @@
       </div>
 
       <nav class="nav">
+        <!--Cubo completo-->
+        <a href="{{ url_for('cubo_completo') }}" 
+           class="{% if 'cubo_completo' in request.path %}active{% endif %}">
+          <i class="bi bi-grid-3x3-gap"></i> Cubo Completo
+        </a>
         <!-- 🔹 Operación SLICE: Horario semanal del docente -->
         <a href="{{ url_for('vista_slice_docente') }}" 
            class="{% if 'slice' in request.path %}active{% endif %}">
@@ -159,13 +164,7 @@
         <!-- 🔹 Operación ROLL-UP -->
         <a href="{{ url_for('vista_rollup') }}" 
            class="{% if 'rollup' in request.path %}active{% endif %}">
-          <i class="bi bi-bar-chart-line"></i> Resumen (Roll-Up)
-        </a>
-
-        <!-- 🔹 Operación PIVOT -->
-        <a href="{{ url_for('vista_pivot') }}" 
-           class="{% if 'pivot' in request.path %}active{% endif %}">
-          <i class="bi bi-grid-3x3-gap"></i> Pivot
+          <i class="bi bi-bar-chart-line"></i> Resumen (Roll-Up / Pivot)
         </a>
       </nav>
     </div>

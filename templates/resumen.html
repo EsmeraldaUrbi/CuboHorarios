@@ -1,19 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Estadísticas · Cubo Horarios BUAP{% endblock %}
+{% block title %}Resumen Horarios BUAP{% endblock %}
 {% block content %}
 
-<h2>Estadísticas del Cubo OLAP</h2>
+<h2>Resumen del Cubo OLAP</h2>
 <p class="text-muted mb-4">
-  Visualización de las operaciones <strong>Roll-Up</strong> (resumen por docente y día) y 
+  Visualización de las operaciones <strong>Roll-Up</strong>(Horarios agrupados) y 
   <strong>Pivot</strong> (rotación de dimensiones).
 </p>
 
-<div class="estadisticas-container">
+<div class="Resumen - container">
 
   <!-- 🔹 Panel Roll-Up -->
   {% if tabla_rollup is not none %}
   <section class="panel full-width mb-5">
-    <h4 class="fw-semibold text-secondary mb-3">Resumen de clases por docente y día (Roll-Up)</h4>
+    <h4 class="fw-semibold text-secondary mb-3">Resumen de clases por docente y tiempo (Roll-Up)</h4>
     <div class="table-wrap full">
       {{ tabla_rollup|safe }}
     </div>

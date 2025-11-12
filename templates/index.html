@@ -1,28 +1,39 @@
 <!-- app/templates/index.html -->
 {% extends "base.html" %}
 {% block title %}Inicio · Cubo Horarios BUAP{% endblock %}
+
 {% block content %}
 
 <!-- Hero principal -->
-<section class="py-5 text-center bg-light rounded shadow-sm mb-5">
-  <div class="container">
-    <h1>Cubo de Horarios - BUAP</h1>
-    <p class="lead text-secondary mb-4">
-      Explora la información académica mediante operaciones <strong>OLAP</strong>: consulta horarios, materias, edificios y estadísticas del cubo.
-    </p>
-  </div>
+<section class="py-4 text-center bg-light rounded shadow-sm mb-5">
+  <h1 class="fw-bold">Cubo de Horarios - BUAP</h1>
+  <p class="lead text-secondary mb-0">
+    Explora la información académica mediante operaciones <strong>OLAP</strong>:
+    consulta horarios, materias, edificios y estadísticas del cubo.
+  </p>
 </section>
 
 <!-- Sección de accesos -->
-<div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-5 g-4">
+  <!-- 🔹 CUBO COMPLETO -->
+  <div class="col">
+    <a href="{{ url_for('vista_cubo') }}" class="text-decoration-none text-dark">
+      <div class="card h-100 border-0 shadow-sm hover-card">
+        <div class="card-body text-center py-4">
+          <i class="bi bi-grid-3x3-gap fs-1" style="color:#4e5bd7;"></i>
+          <h4 class="fw-semibold mb-2">Cubo Completo (OLAP)</h4>
+          <p class="text-muted mb-0">Visualiza toda la información del cubo.</p>
+        </div>
+      </div>
+    </a>
+  </div>
+
   <!-- 🔹 SLICE -->
   <div class="col">
     <a href="{{ url_for('vista_slice_docente') }}" class="text-decoration-none text-dark">
       <div class="card h-100 border-0 shadow-sm hover-card">
         <div class="card-body text-center py-4">
-          <div class="mb-3">
-            <i class="bi bi-calendar-week fs-1 text-primary"></i>
-          </div>
+          <i class="bi bi-calendar-week fs-1 text-primary"></i>
           <h4 class="fw-semibold mb-2">Horario Docente (Slice)</h4>
           <p class="text-muted mb-0">Consulta el horario completo de un docente.</p>
         </div>
@@ -35,9 +46,7 @@
     <a href="{{ url_for('vista_dice_materia') }}" class="text-decoration-none text-dark">
       <div class="card h-100 border-0 shadow-sm hover-card">
         <div class="card-body text-center py-4">
-          <div class="mb-3">
-            <i class="bi bi-journal-bookmark-fill fs-1 text-success"></i>
-          </div>
+          <i class="bi bi-journal-bookmark-fill fs-1 text-success"></i>
           <h4 class="fw-semibold mb-2">Docentes por Materia (Dice)</h4>
           <p class="text-muted mb-0">Revisa qué docentes imparten una materia específica.</p>
         </div>
@@ -50,9 +59,7 @@
     <a href="{{ url_for('vista_dice_edificio_hora') }}" class="text-decoration-none text-dark">
       <div class="card h-100 border-0 shadow-sm hover-card">
         <div class="card-body text-center py-4">
-          <div class="mb-3">
-            <i class="bi bi-building fs-1 text-warning"></i>
-          </div>
+          <i class="bi bi-building fs-1 text-warning"></i>
           <h4 class="fw-semibold mb-2">Docentes en Edificio (Dice)</h4>
           <p class="text-muted mb-0">Encuentra qué docentes están en un edificio a una hora determinada.</p>
         </div>
@@ -65,10 +72,8 @@
     <a href="{{ url_for('vista_rollup') }}" class="text-decoration-none text-dark">
       <div class="card h-100 border-0 shadow-sm hover-card">
         <div class="card-body text-center py-4">
-          <div class="mb-3">
-            <i class="bi bi-graph-up-arrow fs-1 text-danger"></i>
-          </div>
-          <h4 class="fw-semibold mb-2">Estadísticas (Roll-Up / Pivot)</h4>
+          <i class="bi bi-graph-up-arrow fs-1 text-danger"></i>
+          <h4 class="fw-semibold mb-2">Resumen (Roll-Up / Pivot)</h4>
           <p class="text-muted mb-0">Visualiza datos agregados y rotaciones del cubo de horarios.</p>
         </div>
       </div>
@@ -76,14 +81,14 @@
   </div>
 </div>
 
-<!-- Efecto hover personalizado -->
+<!-- Efecto hover (sin tocar sidebar ni márgenes globales) -->
 <style>
   .hover-card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform .2s ease, box-shadow .2s ease;
   }
   .hover-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 20px rgba(0,0,0,.1);
   }
 </style>
 

@@ -2,8 +2,9 @@
 
 import os
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, Response
 from cubo_horarios_olap import build_cubo_from_db  # ✅ usa el nuevo cubo OLAP
+
 
 # ----------------------------
 # CONFIGURACIÓN INICIAL
@@ -22,6 +23,96 @@ cubo = build_cubo_from_db()
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+# =====================================================
+# CUBO COMPLETO
+# =====================================================
+@app.route("/cubo")
+@app.route("/cube", endpoint="vista_cubo")
+def cubo_completo():
+    # Copia segura del cubo
+    df = cubo.cubo.copy()
+
+    # 🔹 Elimina columnas técnicas
+    columnas_quitar = ["id_hecho", "id_docente", "id_materia", "id_espacio", "id_tiempo", "duracion_min", "dia_codigo","clave"]
+    df = df.drop(columns=[c for c in columnas_quitar if c in df.columns], errors="ignore")
+
+    # 🔹 Renombra columnas para mayor legibilidad
+    df = df.rename(columns={
+        "dia_semana": "Día",
+        "codigo_salon": "Salón",
+        "nombreCompleto": "Docente",
+        "nombreMateria": "Materia",
+        "edificio": "Edificio",
+        "aula": "Aula",
+        "h_inicio": "Hora Inicio",
+        "h_fin": "Hora Fin",
+        "nrc": "NRC",
+        "seccion": "Sección"
+    })
+
+    # 🔹 Orden de columnas preferido
+    orden = [
+        "Docente", "Materia", "Edificio", "Aula",
+        "Salón", "Día", "Hora Inicio", "Hora Fin", "NRC", "Sección"
+    ]
+    cols = [c for c in orden if c in df.columns] + [c for c in df.columns if c not in orden]
+    df = df[cols]
+
+    # 🔹 Orden lógico de días
+    if "Día" in df.columns:
+        dias_orden = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"]
+        df["Día"] = pd.Categorical(df["Día"], categories=dias_orden, ordered=True)
+        df = df.sort_values(["Día", "Hora Inicio"])
+
+    # 🔹 Límite opcional (?limit=200)
+    try:
+        limit = int(request.args.get("limit", "0"))
+        if limit > 0:
+            df = df.head(limit)
+    except ValueError:
+        pass
+
+    # 🔹 Renderizar tabla HTML
+    tabla = df.to_html(
+        classes="table table-striped table-bordered align-middle",
+        index=False,
+        border=0,
+        justify="center"
+    )
+
+    return render_template("cubo.html", tabla=tabla, total=cubo.cubo.shape[0], mostrado=df.shape[0])
+
+
+# 🔹 Descargar CSV del cubo
+@app.route("/cubo.csv")
+def cubo_csv():
+    df = cubo.cubo.copy()
+
+    # Quita las columnas técnicas también en el CSV
+    columnas_quitar = ["id_hecho", "id_docente", "id_materia", "id_espacio", "id_tiempo", "duracion_min", "dia_codigo","clave"]
+    df = df.drop(columns=[c for c in columnas_quitar if c in df.columns], errors="ignore")
+
+    df = df.rename(columns={
+        "dia_semana": "Día",
+        "codigo_salon": "Salón",
+        "nombreCompleto": "Docente",
+        "nombreMateria": "Materia",
+        "edificio": "Edificio",
+        "aula": "Aula",
+        "h_inicio": "Hora Inicio",
+        "h_fin": "Hora Fin",
+        "nrc": "NRC",
+        "seccion": "Sección"
+    })
+
+    csv = df.to_csv(index=False)
+    return Response(
+        csv,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=cubo_horarios.csv"}
+    )
 
 
 # =====================================================
@@ -44,7 +135,7 @@ def _view_docentes():
 
 
 @app.route("/docentes", methods=["GET", "POST"])
-@app.route("/slice/docente", methods=["GET", "POST"], endpoint="vista_slice_docente")  # alias para los nuevos templates
+@app.route("/slice/docente", methods=["GET", "POST"], endpoint="vista_slice_docente")
 def docentes():
     return _view_docentes()
 
@@ -76,7 +167,7 @@ def _view_materias():
 
 
 @app.route("/materias", methods=["GET", "POST"])
-@app.route("/dice/materia", methods=["GET", "POST"], endpoint="vista_dice_materia")  # alias OLAP
+@app.route("/dice/materia", methods=["GET", "POST"], endpoint="vista_dice_materia")
 def materias():
     return _view_materias()
 
@@ -122,13 +213,13 @@ def edificios():
 
 
 # =====================================================
-# ROLL-UP / PIVOT - Estadísticas del cubo
+# ROLL-UP / PIVOT - Resumen del cubo
 # =====================================================
-@app.route("/estadisticas")
+@app.route("/resumen")
 @app.route("/rollup", endpoint="vista_rollup")
 @app.route("/pivot", endpoint="vista_pivot")
 def estadisticas():
-    rollup_df = cubo.rollup_clases_por_docente_dia()
+    rollup_df = cubo.rollup_horas_por_docente()
     pivot_df = cubo.pivot_docente_por_dia()
 
     tabla_rollup = (
@@ -153,7 +244,7 @@ def estadisticas():
         )
     )
 
-    return render_template("estadisticas.html", tabla_rollup=tabla_rollup, tabla_pivot=tabla_pivot)
+    return render_template("resumen.html", tabla_rollup=tabla_rollup, tabla_pivot=tabla_pivot)
 
 
 # =====================================================

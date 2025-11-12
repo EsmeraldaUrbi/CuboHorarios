@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Cubo completo · Horarios BUAP{% endblock %}
+{% block content %}
+
+<h2>Cubo completo</h2>
+<p class="text-muted mb-3">
+  Vista unificada del cubo OLAP. Puedes descargarlo como CSV o limitar filas para una carga más rápida.
+</p>
+
+<div class="d-flex gap-2 mb-3">
+  <a class="btn {% if request.args.get('limit') == '200' %}btn-primary{% else %}btn-outline-primary{% endif %}" 
+     href="{{ url_for('vista_cubo') }}?limit=200">
+    Mostrar 200 filas
+  </a>
+
+  <a class="btn {% if not request.args.get('limit') %}btn-primary{% else %}btn-outline-primary{% endif %}" 
+     href="{{ url_for('vista_cubo') }}">
+    Sin límite
+  </a>
+
+  <a class="btn btn-success" href="{{ url_for('cubo_csv') }}">
+    <i class="bi bi-download"></i> Descargar CSV
+  </a>
+</div>
+
+<div class="small text-muted mb-3">
+  Mostrando <strong>{{ mostrado }}</strong> de <strong>{{ total }}</strong> filas.
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <div class="table-responsive">
+      {{ tabla|safe }}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

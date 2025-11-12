@@ -123,6 +123,7 @@ class Horario_cubo:
         # nombreMateria / nombre_materia pueden variar entre fuentes
         if "nombreMateria" not in self.cubo.columns and "nombre_materia" in self.cubo.columns:
             self.cubo["nombreMateria"] = self.cubo["nombre_materia"]
+    
 
     # =========================================================
     # SLICE
@@ -227,31 +228,28 @@ class Horario_cubo:
     # ROLL-UP
     # =========================================================
 
-    def rollup_clases_por_docente_dia(self) -> pd.DataFrame:
+    def rollup_horas_por_docente(self) -> pd.DataFrame:
         """
-        Roll-up ~ agregación a nivel superior:
-        Conteo de clases por Docente y por Día (suma de nrcs).
+        Roll-Up: resumen a nivel superior.
+        Muestra las horas totales de clase por docente en toda la semana.
         """
-        required = {"nrc", "nombreCompleto", "dia_semana"}
-        if not required.issubset(self.cubo.columns):
+        if not {"nombreCompleto", "duracion_min"}.issubset(self.cubo.columns):
             return pd.DataFrame()
 
-        grp = (self.cubo
-               .groupby(["nombreCompleto", "dia_semana"], dropna=False)["nrc"]
-               .count()
-               .rename("clases")
-               .reset_index())
+        # Agrupa por docente y suma la duración total de clases
+        resumen = (
+            self.cubo.groupby("nombreCompleto", dropna=False)["duracion_min"]
+            .sum()
+            .reset_index()
+            .rename(columns={"nombreCompleto": "Nombre", "duracion_min": "Minutos_totales"})
+        )
 
-        # asegurar todas las columnas para todos los días
-        pivot = grp.pivot_table(index="nombreCompleto", columns="dia_semana", values="clases", fill_value=0)
-        for d in ORDEN_DIAS:
-            if d not in pivot.columns:
-                pivot[d] = 0
-        pivot = pivot[ORDEN_DIAS]
-        pivot["Total"] = pivot.sum(axis=1)
-        pivot.index.name = "Nombre"
-        pivot.columns.name = None
-        return pivot.reset_index()
+        # Convierte a horas
+        resumen["Horas_totales"] = (resumen["Minutos_totales"] / 60).round(2)
+
+        # Ordenar por más horas
+        resumen = resumen.sort_values("Horas_totales", ascending=False)
+        return resumen
 
     # =========================================================
     # PIVOT
