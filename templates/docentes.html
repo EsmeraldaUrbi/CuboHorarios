@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Docentes · Horarios - {% endblock %}
+{% block content %}
+
+<h2>Horario por docente</h2>
+<section class="mb-4">
+  <!-- Formulario de búsqueda -->
+  <form method="post" class="row g-2 align-items-end mb-4">
+    <div class="col-md-6">
+      <label class="form-label">Nombre del docente</label>
+      <input type="text" class="form-control" name="nombre_docente" placeholder="Inserta el nombre del docente" value="{{ nombre_docente or '' }}">
+    </div>
+    <div class="col-md-3">
+      <button class="btn btn-primary w-100" type="submit">Consultar horario</button>
+    </div>
+  </form>
+</section>
+
+<!-- Resultados -->
+{% if resultado is not none and not resultado.empty %}
+  {% set dias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"] %}
+  {% set docentes = resultado.groupby("nombreCompleto") %}
+
+  {% for nombre_docente, df_docente in docentes %}
+  <div class="card shadow-sm mb-5">
+    <div class="card-body">
+      <h4 class="text-secondary">Horario del docente:</h4>
+      <h3>{{ nombre_docente }}</h3>
+
+      {% set horarios = df_docente.groupby(["h_inicio", "h_fin"]) %}
+
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle text-center">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">Hora</th>
+              {% for dia in dias %}
+              <th scope="col">{{ dia }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for (inicio, fin), grupo in horarios %}
+            <tr>
+              <td><strong>{{ inicio }}</strong><br>– {{ fin }}</td>
+
+              {% for dia in dias %}
+                {% set fila = grupo[grupo["dia_semana"] == dia] %}
+                <td style="min-width:140px;">
+                  {% if not fila.empty %}
+                    {% for _, r in fila.iterrows() %}
+                      <div class="mb-2">
+                        <div class="fw-semibold">{{ r["nombre_materia"] }}</div>
+                        <div class="text-primary small">{{ r["clave"] }}</div>
+                        <div class="text-muted small">{{ r["edificio"] }} / {{ r["aula"] }}</div>
+                      </div>
+                    {% endfor %}
+                  {% else %}
+                    <span class="text-muted">–</span>
+                  {% endif %}
+                </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="alert alert-secondary text-center mt-4">
+    No se encontraron horarios para mostrar.
+  </div>
+{% endif %}
+
+{% endblock %}

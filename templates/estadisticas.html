@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Estadísticas · Horarios BUAP{% endblock %}
+{% block content %}
+
+<h2>Estadísticas: Horarios - BUAP</h2>
+<p>Horas totales de clase para cada docente al día.</p>
+
+<div class="estadisticas-container">
+  <section class="panel full-width">
+    <div class="table-wrap full">
+      {{ tabla_piv|safe }}
+    </div>
+  </section>
+</div>
+
+{% endblock %}

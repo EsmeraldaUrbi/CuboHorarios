@@ -1,0 +1,176 @@
+<!-- app/templates/base.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Horarios · BUAP{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --azul-buap: #002b5c;
+      --azul-claro: #1d4e89;
+      --dorado: #c89b3c;
+      --fondo: #f5f7fa;
+      --texto: #1e293b;
+      --blanco: #ffffff;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, sans-serif;
+      background-color: var(--fondo);
+      color: var(--texto);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ===== Sidebar ===== */
+    .sidebar {
+      background: var(--azul-buap);
+      width: 250px;
+      min-height: 100vh;
+      color: var(--blanco);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebar .brand {
+      text-align: center;
+      padding: 1.2rem 0;
+      font-weight: 700;
+      font-size: 1.3rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    /* 🔹 Hacemos el título clickeable */
+    .sidebar .brand a {
+      color: var(--blanco);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    .sidebar .brand a:hover {
+      color: var(--dorado);
+    }
+
+    .sidebar .nav {
+      flex-grow: 1;
+      padding: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sidebar .nav a {
+      color: var(--blanco);
+      text-decoration: none;
+      padding: 0.9rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .sidebar .nav a:hover,
+    .sidebar .nav a.active {
+      background-color: var(--azul-claro);
+      color: var(--dorado);
+    }
+
+    .sidebar .footer {
+      text-align: center;
+      font-size: 0.85rem;
+      padding: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+    }
+
+    /* ===== Contenido principal ===== */
+    .content {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 2rem;
+    }
+
+    .content h2 {
+      color: var(--azul-buap);
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .alert {
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+      .sidebar {
+        flex-direction: row;
+        width: 100%;
+        height: auto;
+      }
+      .sidebar .nav {
+        flex-direction: row;
+        justify-content: space-around;
+      }
+      .sidebar .footer {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🔹 Barra lateral -->
+  <aside class="sidebar">
+    <div>
+      <!-- 🔹 Aquí el cambio: el nombre ahora es un enlace -->
+      <div class="brand">
+        <a href="{{ url_for('index') }}">Horarios - BUAP</a>
+      </div>
+
+      <nav class="nav">
+        <a href="{{ url_for('docentes') }}" class="{% if request.path == '/docentes' or request.path == '/' %}active{% endif %}">
+          <i class="bi bi-person-lines-fill"></i> Docentes
+        </a>
+        <a href="{{ url_for('materias') }}" class="{% if request.path == '/materias' %}active{% endif %}">
+          <i class="bi bi-journal-bookmark-fill"></i> Materias
+        </a>
+        <a href="{{ url_for('edificios') }}" class="{% if request.path == '/edificios' %}active{% endif %}">
+          <i class="bi bi-building"></i> Edificios
+        </a>
+        <a href="{{ url_for('estadisticas') }}" class="{% if request.path == '/estadisticas' %}active{% endif %}">
+          <i class="bi bi-graph-up-arrow"></i> Estadísticas
+        </a>
+      </nav>
+    </div>
+
+    <div class="footer">
+      © 2025 Inteligencia de Negocios — BUAP
+    </div>
+  </aside>
+
+  <!-- 🔹 Contenido dinámico -->
+  <main class="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'warning' if category=='warning' else 'info' }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+</body>
+</html>

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Docentes por materia o clave · Horarios - BUAP{% endblock %}
+{% block content %}
+
+<h2>Docentes por materia</h2>
+<section class="mb-4">
+  
+  <p class="text-muted">Selecciona una materia para conocer que docentes la imparten</p>
+</section>
+
+<!-- Formulario -->
+<form method="post" class="row g-3 align-items-end mb-4">
+  <div class="col-md-8">
+    <label class="form-label">Materia</label>
+    <select name="materia" class="form-select" required>
+      <option value="">Elige una materia</option>
+      {% for m in materias_lista %}
+        <option value="{{ m.nombreMateria }}" {% if m.nombreMateria == query %}selected{% endif %}>
+          {{ m.nombreMateria }} ({{ m.clave }})
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-md-4 d-grid">
+    <button class="btn btn-primary" type="submit">Ver docentes</button>
+  </div>
+</form>
+
+<!-- Resultados -->
+{% if tabla is not none %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h4 class="fw-semibold text-secondary mb-3">
+        Resultados{% if query %} para <span class="text-primary">"{{ query }}"</span>{% endif %}
+      </h4>
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Clave</th>
+              <th>Materia</th>
+              <th>Docente</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for _, row in tabla.iterrows() %}
+              <tr>
+                <td>{{ row["clave"] }}</td>
+                <td>{{ row["nombreMateria"] }}</td>
+                <td>{{ row["nombreCompleto"] }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="alert alert-secondary text-center mt-4">
+    No se encontraron resultados para mostrar.
+  </div>
+{% endif %}
+
+<!-- Efecto hover -->
+<style>
+  table tbody tr:hover {
+    background-color: #f8fafc;
+    transition: background 0.2s ease;
+  }
+</style>
+
+{% endblock %}

@@ -1,0 +1,86 @@
+<!-- app/templates/index.html -->
+{% extends "base.html" %}
+{% block title %}Inicio · Horarios - BUAP{% endblock %}
+{% block content %}
+
+<!-- Hero principal -->
+<section class="py-5 text-center bg-light rounded shadow-sm mb-5">
+  <div class="container">
+    <h1>Horarios - BUAP</h1>
+    <p class="lead text-secondary mb-4">
+      Explora la información académica: horarios por docente, materias, espacios y estadísticas.
+    </p>
+  </div>
+</section>
+
+<!-- Sección de accesos -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+  <div class="col">
+    <a href="{{ url_for('docentes') }}" class="text-decoration-none text-dark">
+      <div class="card h-100 border-0 shadow-sm hover-card">
+        <div class="card-body text-center py-4">
+          <div class="mb-3">
+            <i class="bi bi-person-lines-fill fs-1 text-primary"></i>
+          </div>
+          <h4 class="fw-semibold mb-2">Docentes</h4>
+          <p class="text-muted mb-0">Consulta el horario completo de un docente.</p>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col">
+    <a href="{{ url_for('materias') }}" class="text-decoration-none text-dark">
+      <div class="card h-100 border-0 shadow-sm hover-card">
+        <div class="card-body text-center py-4">
+          <div class="mb-3">
+            <i class="bi bi-journal-bookmark-fill fs-1 text-success"></i>
+          </div>
+          <h4 class="fw-semibold mb-2">Materias</h4>
+          <p class="text-muted mb-0">Revisa qué docentes imparten cada materia.</p>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col">
+    <a href="{{ url_for('edificios') }}" class="text-decoration-none text-dark">
+      <div class="card h-100 border-0 shadow-sm hover-card">
+        <div class="card-body text-center py-4">
+          <div class="mb-3">
+            <i class="bi bi-building fs-1 text-warning"></i>
+          </div>
+          <h4 class="fw-semibold mb-2">Edificios</h4>
+          <p class="text-muted mb-0">Encuentra quién está en cada edificio y a qué hora.</p>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col">
+    <a href="{{ url_for('estadisticas') }}" class="text-decoration-none text-dark">
+      <div class="card h-100 border-0 shadow-sm hover-card">
+        <div class="card-body text-center py-4">
+          <div class="mb-3">
+            <i class="bi bi-graph-up-arrow fs-1 text-danger"></i>
+          </div>
+          <h4 class="fw-semibold mb-2">Estadísticas</h4>
+          <p class="text-muted mb-0">Visualiza datos agregados del cubo de horarios.</p>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Efecto hover personalizado -->
+<style>
+  .hover-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  }
+</style>
+
+{% endblock %}

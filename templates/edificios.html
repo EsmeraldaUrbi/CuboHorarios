@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Docentes por edificio y hora · Horarios - BUAP{% endblock %}
+{% block content %}
+
+<h2>Docentes en un edificio a una determinada hora</h2>
+
+<section class="mb-4">
+
+  <!-- Formulario -->
+  <form method="post" class="row g-3 align-items-end mb-4">
+    <div class="col-md-5">
+      <label class="form-label">Edificio</label>
+      <select name="edificio" class="form-select" required>
+        <option value="">Selecciona el edificio</option>
+        {% for e in edificios_lista %}
+          <option value="{{ e }}" {% if e == edificio %}selected{% endif %}>{{ e }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Hora</label>
+      <select name="hora" class="form-select" required>
+        <option value="">Selecciona una hora</option>
+        {% for h in horas_lista %}
+          <option value="{{ h }}" {% if h == hora %}selected{% endif %}>{{ h }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-3 d-grid">
+      <button class="btn btn-primary" type="submit">Ver</button>
+    </div>
+  </form>
+</section>
+
+<!-- Resultados -->
+{% if tabla is not none %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h4 class="fw-semibold text-secondary mb-3">
+        Resultados{% if edificio and hora %} para <span class="text-primary">"{{ edificio }}"</span> a las <span class="text-primary">{{ hora }}</span>{% endif %}
+      </h4>
+
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Docente</th>
+              <th>Materia</th>
+              <th>Clave</th>
+              <th>Salón</th>
+              <th>Día</th>
+              <th>Hora inicio</th>
+              <th>Hora fin</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for _, row in tabla.iterrows() %}
+              <tr>
+                <td>{{ row["nombreCompleto"] }}</td>
+                <td>{{ row["nombreMateria"] }}</td>
+                <td>{{ row["clave"] }}</td>
+                <td>{{ row["codigo_salon"] }}</td>
+                <td>{{ row["dia_semana"] }}</td>
+                <td>{{ row["h_inicio"] }}</td>
+                <td>{{ row["h_fin"] }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="alert alert-secondary text-center mt-4">
+    No se encontraron resultados.
+  </div>
+{% endif %}
+
+{% endblock %}
