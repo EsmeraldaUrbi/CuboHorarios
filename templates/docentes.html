@@ -1,8 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Docentes · Horarios - {% endblock %}
+{% block title %}Horario Docente · Cubo Horarios BUAP{% endblock %}
 {% block content %}
 
-<h2>Horario por docente</h2>
+<h2>Horario semanal del docente (Slice)</h2>
+
 <section class="mb-4">
   <!-- Formulario de búsqueda -->
   <form method="post" class="row g-2 align-items-end mb-4">
@@ -11,12 +12,13 @@
       <input type="text" class="form-control" name="nombre_docente" placeholder="Inserta el nombre del docente" value="{{ nombre_docente or '' }}">
     </div>
     <div class="col-md-3">
-      <button class="btn btn-primary w-100" type="submit">Consultar horario</button>
+      <button class="btn btn-primary w-100" type="submit">
+        <i class="bi bi-search"></i> Consultar horario
+      </button>
     </div>
   </form>
 </section>
 
-<!-- Resultados -->
 {% if resultado is not none and not resultado.empty %}
   {% set dias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"] %}
   {% set docentes = resultado.groupby("nombreCompleto") %}
@@ -26,6 +28,7 @@
     <div class="card-body">
       <h4 class="text-secondary">Horario del docente:</h4>
       <h3>{{ nombre_docente }}</h3>
+      <p class="small text-muted mb-3">Operación OLAP: <strong>Slice</strong> (vista de una dimensión: Docente)</p>
 
       {% set horarios = df_docente.groupby(["h_inicio", "h_fin"]) %}
 
@@ -50,7 +53,7 @@
                   {% if not fila.empty %}
                     {% for _, r in fila.iterrows() %}
                       <div class="mb-2">
-                        <div class="fw-semibold">{{ r["nombre_materia"] }}</div>
+                        <div class="fw-semibold">{{ r["nombreMateria"] }}</div>
                         <div class="text-primary small">{{ r["clave"] }}</div>
                         <div class="text-muted small">{{ r["edificio"] }} / {{ r["aula"] }}</div>
                       </div>

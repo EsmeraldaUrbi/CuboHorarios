@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{% block title %}Horarios · BUAP{% endblock %}</title>
+  <title>{% block title %}Cubo de Horarios · BUAP{% endblock %}</title>
   <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -48,12 +48,12 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     }
 
-    /* 🔹 Hacemos el título clickeable */
     .sidebar .brand a {
       color: var(--blanco);
       text-decoration: none;
       transition: color 0.2s ease;
     }
+
     .sidebar .brand a:hover {
       color: var(--dorado);
     }
@@ -133,23 +133,39 @@
   <!-- 🔹 Barra lateral -->
   <aside class="sidebar">
     <div>
-      <!-- 🔹 Aquí el cambio: el nombre ahora es un enlace -->
       <div class="brand">
-        <a href="{{ url_for('index') }}">Horarios - BUAP</a>
+        <a href="{{ url_for('index') }}">Cubo Horarios - BUAP</a>
       </div>
 
       <nav class="nav">
-        <a href="{{ url_for('docentes') }}" class="{% if request.path == '/docentes' or request.path == '/' %}active{% endif %}">
-          <i class="bi bi-person-lines-fill"></i> Docentes
+        <!-- 🔹 Operación SLICE: Horario semanal del docente -->
+        <a href="{{ url_for('vista_slice_docente') }}" 
+           class="{% if 'slice' in request.path %}active{% endif %}">
+          <i class="bi bi-calendar-week"></i> Horario Docente
         </a>
-        <a href="{{ url_for('materias') }}" class="{% if request.path == '/materias' %}active{% endif %}">
+
+        <!-- 🔹 Operación DICE: Docentes por materia -->
+        <a href="{{ url_for('vista_dice_materia') }}" 
+           class="{% if 'materia' in request.path %}active{% endif %}">
           <i class="bi bi-journal-bookmark-fill"></i> Materias
         </a>
-        <a href="{{ url_for('edificios') }}" class="{% if request.path == '/edificios' %}active{% endif %}">
+
+        <!-- 🔹 Operación DICE 2D: Docentes en edificio por hora -->
+        <a href="{{ url_for('vista_dice_edificio_hora') }}" 
+           class="{% if 'edificio' in request.path %}active{% endif %}">
           <i class="bi bi-building"></i> Edificios
         </a>
-        <a href="{{ url_for('estadisticas') }}" class="{% if request.path == '/estadisticas' %}active{% endif %}">
-          <i class="bi bi-graph-up-arrow"></i> Estadísticas
+
+        <!-- 🔹 Operación ROLL-UP -->
+        <a href="{{ url_for('vista_rollup') }}" 
+           class="{% if 'rollup' in request.path %}active{% endif %}">
+          <i class="bi bi-bar-chart-line"></i> Resumen (Roll-Up)
+        </a>
+
+        <!-- 🔹 Operación PIVOT -->
+        <a href="{{ url_for('vista_pivot') }}" 
+           class="{% if 'pivot' in request.path %}active{% endif %}">
+          <i class="bi bi-grid-3x3-gap"></i> Pivot
         </a>
       </nav>
     </div>

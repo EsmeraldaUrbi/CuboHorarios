@@ -1,16 +1,41 @@
 {% extends "base.html" %}
-{% block title %}Estadísticas · Horarios BUAP{% endblock %}
+{% block title %}Estadísticas · Cubo Horarios BUAP{% endblock %}
 {% block content %}
 
-<h2>Estadísticas: Horarios - BUAP</h2>
-<p>Horas totales de clase para cada docente al día.</p>
+<h2>Estadísticas del Cubo OLAP</h2>
+<p class="text-muted mb-4">
+  Visualización de las operaciones <strong>Roll-Up</strong> (resumen por docente y día) y 
+  <strong>Pivot</strong> (rotación de dimensiones).
+</p>
 
 <div class="estadisticas-container">
-  <section class="panel full-width">
+
+  <!-- 🔹 Panel Roll-Up -->
+  {% if tabla_rollup is not none %}
+  <section class="panel full-width mb-5">
+    <h4 class="fw-semibold text-secondary mb-3">Resumen de clases por docente y día (Roll-Up)</h4>
     <div class="table-wrap full">
-      {{ tabla_piv|safe }}
+      {{ tabla_rollup|safe }}
     </div>
   </section>
+  {% endif %}
+
+  <!-- 🔹 Panel Pivot -->
+  {% if tabla_pivot is not none %}
+  <section class="panel full-width">
+    <h4 class="fw-semibold text-secondary mb-3">Vista Pivot (rotación del cubo)</h4>
+    <div class="table-wrap full">
+      {{ tabla_pivot|safe }}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if (tabla_rollup is none) and (tabla_pivot is none) %}
+  <div class="alert alert-secondary text-center mt-4">
+    No hay datos de estadísticas disponibles.
+  </div>
+  {% endif %}
+
 </div>
 
 {% endblock %}

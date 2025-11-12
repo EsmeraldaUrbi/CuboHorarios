@@ -1,122 +1,109 @@
 # --- APLICACIÓN WEB - Visualización del Cubo OLAP de Horarios ---
 
-
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
-from cubo import build_cubo_from_db
 import pandas as pd
+from flask import Flask, render_template, request, redirect, url_for, flash
+from cubo_horarios_olap import build_cubo_from_db  # ✅ usa el nuevo cubo OLAP
 
-
-# SETUP
+# ----------------------------
+# CONFIGURACIÓN INICIAL
+# ----------------------------
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret")
 
-# Carga del cubo OLAP al iniciar la app
+# Cargar cubo OLAP al iniciar
 cubo = build_cubo_from_db()
 
 
-
-# RUTAS PRINCIPALES
-
-
+# ----------------------------
+# RUTA PRINCIPAL
+# ----------------------------
 @app.route("/")
 def index():
-    # Página principal
     return render_template("index.html")
 
 
-
-# DOCENTES
-
-@app.route("/docentes", methods=["GET", "POST"])
-def docentes():
-    # Muestra el horario completo de los docentes o uno específico
-    resultado = None
-    nombre_docente = None
+# =====================================================
+# SLICE - Horario por docente
+# =====================================================
+def _view_docentes():
+    resultado = pd.DataFrame()
+    nombre_docente = ""
 
     if request.method == "POST":
-        nombre_docente = request.form.get("nombre_docente", "").strip()
+        nombre_docente = (request.form.get("nombre_docente") or "").strip()
         if nombre_docente:
-            resultado = cubo.h_docente(nombre_docente)
+            resultado = cubo.slice_por_docente(nombre_docente)
+            if resultado is None or resultado.empty:
+                flash("No se encontraron clases para ese docente.", "warning")
         else:
-            resultado = cubo.cubo[[
-                "nombreCompleto", "dia_semana", "h_inicio", "h_fin",
-                "nombreMateria", "clave", "codigo_salon", "edificio", "aula"
-            ]].sort_values(["nombreCompleto", "dia_semana", "h_inicio"])
-    else:
-        resultado = cubo.cubo[[
-            "nombreCompleto", "dia_semana", "h_inicio", "h_fin",
-            "nombreMateria", "clave", "codigo_salon", "edificio", "aula"
-        ]].sort_values(["nombreCompleto", "dia_semana", "h_inicio"])
+            flash("Por favor ingresa un nombre de docente.", "warning")
 
-    # Orden correcto de días
-    orden_dias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"]
-    resultado["dia_semana"] = pd.Categorical(resultado["dia_semana"], categories=orden_dias, ordered=True)
-    resultado = resultado.sort_values(["nombreCompleto", "dia_semana", "h_inicio"])
-
-    # Renderiza la plantilla
-    return render_template(
-        "docentes.html",
-        resultado=resultado,
-        nombre_docente=nombre_docente
-    )
+    return render_template("docentes.html", resultado=resultado, nombre_docente=nombre_docente)
 
 
+@app.route("/docentes", methods=["GET", "POST"])
+@app.route("/slice/docente", methods=["GET", "POST"], endpoint="vista_slice_docente")  # alias para los nuevos templates
+def docentes():
+    return _view_docentes()
 
-# MATERIAS
 
-@app.route("/materias", methods=["GET", "POST"])
-def materias():
-    # Lista las materias y los docentes que las imparten
-    df = None
+# =====================================================
+# DICE - Docentes por materia
+# =====================================================
+def _view_materias():
     query = ""
+    df = pd.DataFrame()
 
-    # Lista de materias únicas
     materias_lista = (
-        cubo.cubo[["clave", "nombreMateria"]]
+        cubo.dim_materia[["clave", "nombreMateria"]]
         .drop_duplicates()
         .sort_values("nombreMateria")
         .to_dict("records")
     )
 
     if request.method == "POST":
-        query = request.form.get("materia", "").strip()
-        df = cubo.docentes_por_materia(query)
-        if df is None or df.empty:
-            flash(f"No hay docentes para la materia/clave: {query}", "warning")
-            return redirect(url_for("materias"))
+        query = (request.form.get("materia") or "").strip()
+        if query:
+            df = cubo.dice_por_materia(query)
+            if df is None or df.empty:
+                flash(f"No se encontraron docentes para la materia o clave '{query}'.", "warning")
+        else:
+            flash("Selecciona una materia o clave válida.", "warning")
 
     return render_template("materias.html", tabla=df, query=query, materias_lista=materias_lista)
 
 
+@app.route("/materias", methods=["GET", "POST"])
+@app.route("/dice/materia", methods=["GET", "POST"], endpoint="vista_dice_materia")  # alias OLAP
+def materias():
+    return _view_materias()
 
-# EDIFICIOS
-@app.route("/edificios", methods=["GET", "POST"])
-def edificios():
-    # Muestra los docentes en un edificio a una hora específica
-    df = None
+
+# =====================================================
+# DICE - Docentes en edificio por hora
+# =====================================================
+def _view_edificios():
     edificio = ""
     hora = ""
+    df = pd.DataFrame()
 
-    # Listado de edificios disponibles
-    edificios_lista = cubo.cubo["edificio"].dropna().drop_duplicates().sort_values().tolist()
-
-    # Lista de horas (formato HH:MM)
-    horas_lista = sorted({
-        (h.strftime("%H:%M") if hasattr(h, "strftime") else str(h)[:5])
-        for h in cubo.cubo["h_inicio"].dropna().tolist()
-    })
+    edificios_lista = cubo.dim_espacio["edificio"].dropna().astype(str).drop_duplicates().sort_values().tolist()
+    horas_lista = (
+        cubo.cubo["h_inicio"].dropna().astype(str).drop_duplicates().sort_values().tolist()
+        if "h_inicio" in cubo.cubo.columns else []
+    )
 
     if request.method == "POST":
-        edificio = request.form.get("edificio", "").strip()
-        hora = request.form.get("hora", "").strip()
-
+        edificio = (request.form.get("edificio") or "").strip()
+        hora = (request.form.get("hora") or "").strip()
         if edificio and hora:
-            df = cubo.docentes_en_edificio_hora(edificio, hora)
+            df = cubo.dice_en_edificio_hora(edificio, hora)
             if df is None or df.empty:
-                flash(f"No hay docentes en {edificio} a las {hora}.", "warning")
-                return redirect(url_for("edificios"))
+                flash(f"No se encontraron docentes en {edificio} a las {hora}.", "warning")
+        else:
+            flash("Selecciona un edificio y una hora.", "warning")
 
     return render_template(
         "edificios.html",
@@ -124,48 +111,53 @@ def edificios():
         edificio=edificio,
         hora=hora,
         edificios_lista=edificios_lista,
-        horas_lista=horas_lista
+        horas_lista=horas_lista,
     )
 
 
+@app.route("/edificios", methods=["GET", "POST"])
+@app.route("/dice/edificio-hora", methods=["GET", "POST"], endpoint="vista_dice_edificio_hora")
+def edificios():
+    return _view_edificios()
 
-# ESTADÍSTICAS
+
+# =====================================================
+# ROLL-UP / PIVOT - Estadísticas del cubo
+# =====================================================
 @app.route("/estadisticas")
+@app.route("/rollup", endpoint="vista_rollup")
+@app.route("/pivot", endpoint="vista_pivot")
 def estadisticas():
-    # Obtenemos la tabla dinámica
-    piv = cubo.clases_por_docente_y_dia()
+    rollup_df = cubo.rollup_clases_por_docente_dia()
+    pivot_df = cubo.pivot_docente_por_dia()
 
-    # 🔹 Convertimos el índice a columnas
-    piv = piv.reset_index()
-
-    # 🔹 Si el índice tiene nombre, se lo cambiamos directamente
-    if hasattr(piv.index, "name") and piv.index.name == "dia_semana":
-        piv.index.name = "Día"
-
-    # 🔹 Si hay una columna llamada 'dia_semana', también la renombramos
-    if "dia_semana" in piv.columns:
-        piv = piv.rename(columns={"dia_semana": "Día"})
-
-    # 🔹 Renombramos 'nombreCompleto' por 'Nombre' si existe
-    if "nombreCompleto" in piv.columns:
-        piv = piv.rename(columns={"nombreCompleto": "Nombre"})
-
-    # 🔹 Convertimos la tabla en HTML con bordes
-    tabla_piv = piv.to_html(
-        classes="table table-bordered table-striped table-full",
-        index=False,
-        border=1,
-        justify="center"
+    tabla_rollup = (
+        None
+        if rollup_df is None or rollup_df.empty
+        else rollup_df.to_html(
+            classes="table table-bordered table-striped align-middle",
+            index=False,
+            border=0,
+            justify="center",
+        )
     )
 
-    # Renderizamos
-    return render_template("estadisticas.html", tabla_piv=tabla_piv)
+    tabla_pivot = (
+        None
+        if pivot_df is None or pivot_df.empty
+        else pivot_df.to_html(
+            classes="table table-bordered table-striped align-middle",
+            index=False,
+            border=0,
+            justify="center",
+        )
+    )
+
+    return render_template("estadisticas.html", tabla_rollup=tabla_rollup, tabla_pivot=tabla_pivot)
 
 
-
+# =====================================================
 # MAIN
-
+# =====================================================
 if __name__ == "__main__":
-    # Ejecución local
-    # Desde la carpeta "app/", correr con:  flask run  o  python main.py
     app.run(debug=True)

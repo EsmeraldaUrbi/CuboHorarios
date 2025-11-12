@@ -2,10 +2,9 @@
 {% block title %}Docentes por edificio y hora · Horarios - BUAP{% endblock %}
 {% block content %}
 
-<h2>Docentes en un edificio a una determinada hora</h2>
+<h2>Docentes en un edificio a una determinada hora (Dice)</h2>
 
 <section class="mb-4">
-
   <!-- Formulario -->
   <form method="post" class="row g-3 align-items-end mb-4">
     <div class="col-md-5">
@@ -35,12 +34,13 @@
 </section>
 
 <!-- Resultados -->
-{% if tabla is not none %}
+{% if tabla is not none and not tabla.empty %}
   <div class="card shadow-sm">
     <div class="card-body">
-      <h4 class="fw-semibold text-secondary mb-3">
+      <h4 class="fw-semibold text-secondary mb-1">
         Resultados{% if edificio and hora %} para <span class="text-primary">"{{ edificio }}"</span> a las <span class="text-primary">{{ hora }}</span>{% endif %}
       </h4>
+      <p class="small text-muted mb-3">Operación OLAP: <strong>Dice</strong> (filtro multidimensional por espacio + tiempo)</p>
 
       <div class="table-responsive">
         <table class="table table-striped table-bordered align-middle">
@@ -69,6 +69,10 @@
             {% endfor %}
           </tbody>
         </table>
+      </div>
+
+      <div class="text-muted small mt-2">
+        Total de coincidencias: <strong>{{ tabla.shape[0] }}</strong>
       </div>
     </div>
   </div>
